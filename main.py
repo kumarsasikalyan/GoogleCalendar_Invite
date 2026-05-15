@@ -243,8 +243,10 @@ def home():
 def handle_task():
     data = request.get_json(silent=True, force=True)
     if not data:
+        app.logger.warning("RAW BODY: %s", request.get_data(as_text=True))
         return jsonify({"error": "Invalid JSON body"}), 400
 
+    app.logger.info("REQUEST: %s", json.dumps(data))
     req_id = data.get("id", "1")
     method = data.get("method", "")
     params = data.get("params", {})
