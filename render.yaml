@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: google-calendar-a2a
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app
+    envVars:
+      - key: GOOGLE_CREDENTIALS_JSON
+        sync: false
+      - key: CALENDAR_EMAIL
+        sync: false
