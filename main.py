@@ -6,7 +6,10 @@ from flask import Flask, request, jsonify
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
+import logging
 app = Flask(__name__)
+logging.basicConfig(level=logging.INFO)
+app.logger.setLevel(logging.INFO)
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
@@ -246,7 +249,7 @@ def handle_task():
         app.logger.warning("RAW BODY: %s", request.get_data(as_text=True))
         return jsonify({"error": "Invalid JSON body"}), 400
 
-    app.logger.info("REQUEST: %s", json.dumps(data))
+    app.logger.warning("REQUEST: %s", json.dumps(data))
     req_id = data.get("id", "1")
     method = data.get("method", "")
     params = data.get("params", {})
