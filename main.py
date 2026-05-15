@@ -241,7 +241,7 @@ def home():
 
 @app.route("/", methods=["POST"])
 def handle_task():
-    data = request.get_json(silent=True)
+    data = request.get_json(silent=True, force=True)
     if not data:
         return jsonify({"error": "Invalid JSON body"}), 400
 
