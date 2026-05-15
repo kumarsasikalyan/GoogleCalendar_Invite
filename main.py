@@ -107,6 +107,28 @@ def parse_date(text, now):
     return (now + timedelta(days=1)).date()
 
 
+TZ_OFFSETS = {
+    "ist": 330,    # India Standard Time UTC+5:30
+    "gmt": 0,
+    "utc": 0,
+    "est": -300,   # Eastern Standard Time UTC-5
+    "edt": -240,   # Eastern Daylight Time UTC-4
+    "cst": -360,
+    "cdt": -300,
+    "mst": -420,
+    "mdt": -360,
+    "pst": -480,
+    "pdt": -420,
+}
+
+def parse_tz_offset(text):
+    """Return UTC offset in minutes from timezone abbreviation in text."""
+    m = re.search(r"\b(ist|gmt|utc|e[sd]t|c[sd]t|m[sd]t|p[sd]t)\b", text, re.IGNORECASE)
+    if m:
+        return TZ_OFFSETS.get(m.group(1).lower(), 0)
+    return 0
+
+
 def parse_time(text):
     """Return (hour, minute) parsed from text, defaulting to 10:00."""
 
@@ -164,8 +186,10 @@ def parse_meeting_details(text):
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     date = parse_date(text, now)
     hour, minute = parse_time(text)
+    tz_offset_minutes = parse_tz_offset(text)
 
-    start = datetime(date.year, date.month, date.day, hour, minute, 0)
+    start_local = datetime(date.year, date.month, date.day, hour, minute, 0)
+    start = start_local - timedelta(minutes=tz_offset_minutes)
     end = start + timedelta(hours=1)
 
     return emails, subject, start, end
