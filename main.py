@@ -187,7 +187,18 @@ def extract_message_text(params):
     return str(params)
 
 
-def make_result(req_id, state, text, task_id=None):
+def make_result(req_id, state, text, task_id=None, method="tasks/send"):
+    if method == "message/send":
+        return jsonify({
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "result": {
+                "kind": "message",
+                "role": "agent",
+                "messageId": str(req_id) + "-reply",
+                "parts": [{"kind": "text", "text": text}],
+            },
+        })
     return jsonify({
         "jsonrpc": "2.0",
         "id": req_id,
@@ -267,7 +278,7 @@ def handle_task():
 
     if not message_text.strip():
         return make_result(req_id, "failed",
-                           "Please tell me the attendee emails and meeting subject.", task_id)
+                           "Please tell me the attendee emails and meeting subject.", task_id, method)
 
     try:
         emails, subject, start_time, end_time = parse_meeting_details(message_text)
@@ -275,12 +286,12 @@ def handle_task():
         if not emails:
             return make_result(req_id, "failed",
                                "I could not find any email addresses. "
-                               "Please include the attendee emails in your message.", task_id)
+                               "Please include the attendee emails in your message.", task_id, method)
 
         calendar_email = os.environ.get("CALENDAR_EMAIL")
         if not calendar_email:
             return make_result(req_id, "failed",
-                               "Server configuration error: CALENDAR_EMAIL is not set.", task_id)
+                               "Server configuration error: CALENDAR_EMAIL is not set.", task_id, method)
 
         service = get_calendar_service()
 
@@ -304,10 +315,10 @@ def handle_task():
             f"Time:      {start_time.strftime('%I:%M %p')} UTC\n"
             f"Event link: {event.get('htmlLink', 'N/A')}"
         )
-        return make_result(req_id, "completed", reply, task_id)
+        return make_result(req_id, "completed", reply, task_id, method)
 
     except Exception as exc:
-        return make_result(req_id, "failed", f"Failed to schedule meeting: {exc}", task_id)
+        return make_result(req_id, "failed", f"Failed to schedule meeting: {exc}", task_id, method)
 
 
 if __name__ == "__main__":
