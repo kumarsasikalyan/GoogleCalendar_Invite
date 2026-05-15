@@ -177,7 +177,7 @@ def extract_message_text(params):
         if isinstance(msg, dict):
             text = ""
             for part in msg.get("parts", []):
-                if isinstance(part, dict) and part.get("type") == "text":
+                if isinstance(part, dict) and part.get("kind", part.get("type")) == "text":
                     text += part.get("text", "")
             return text
         if isinstance(msg, str):
